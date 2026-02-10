@@ -1,3 +1,15 @@
+# CLI shortcuts:
+
+**remove build folders:** rm -rf node_modules .nuxt .output .nitro .data .cache dist logs
+
+**install:** npm i
+
+**run:** npm run dev
+
+**generate static map and files:** npm run generate
+
+---
+
 # Course Progress Guide — Folders 1 → 11
 
 **Nuxt 3 / 4+ Supabase Masterclass**
@@ -218,23 +230,6 @@ You learn that **deployment is mostly about structure**, not magic.
 ### Why this section matters
 
 This is where the project becomes _real_ — public, reproducible, and maintainable.
-
----
-
-## Big Picture Takeaway
-
-Each folder adds **one layer of maturity**:
-
-1. Structure & UI
-2. Data & state
-3. Content systems
-4. Reusability
-5. UX polish
-6. SEO & server logic
-7. Deployment & production discipline
-
-The course doesn’t just teach Nuxt —  
-it teaches how a Nuxt app **grows without collapsing under its own weight**.
 
 ---
 
