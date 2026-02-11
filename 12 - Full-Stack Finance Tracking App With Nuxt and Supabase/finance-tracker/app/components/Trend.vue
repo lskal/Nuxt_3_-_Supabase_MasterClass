@@ -48,8 +48,7 @@ const persantageTrend = computed(() => {
     <div class="text-2xl font-extrabold text-black dark:text-white mb-2">
       <USkeleton class="h-8 w-full" v-if="loading" />
       <div v-else>
-        <!-- {{ useCurrency(props.amount) }} -->
-        {{ props.amount }}
+        {{ useCurrency(props.amount) }}
       </div>
     </div>
 
