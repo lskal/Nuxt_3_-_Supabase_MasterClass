@@ -3,7 +3,7 @@ export const useCurrency = (amount) => {
     return new Intl.NumberFormat("it-IT", {
       style: "currency",
       currency: "EUR",
-    }).format(amount);
+    }).format(isRef(amount) ? amount.value : amount);
   });
 
   return currenty;
