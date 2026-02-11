@@ -22,7 +22,7 @@ const viewSelect = ref(transactionalViewOptions[1]);
       :loading="false"
     />
     <Trend
-      color="green"
+      color="pink"
       title="Expense"
       :amount="4000"
       :last-amount="5000"
@@ -36,7 +36,7 @@ const viewSelect = ref(transactionalViewOptions[1]);
       :loading="false"
     />
     <Trend
-      color="red"
+      color="gray"
       title="Saving"
       :amount="4000"
       :last-amount="4100"

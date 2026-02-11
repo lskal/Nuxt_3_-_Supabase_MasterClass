@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { colorMap, type TTrendColor } from "../constants";
+import { computed } from "vue";
+import { getTrendColorClass, colorMap, type TTrendColor } from "~/constants";
 
 const props = defineProps<{
   title: string;
@@ -9,13 +10,9 @@ const props = defineProps<{
   loading: boolean;
 }>();
 
-const colorClass = computed(() => colorMap[props.color]);
+const colorClass = computed(() => getTrendColorClass(props.color));
 
-const trandingUp = computed(() => {
-  if (props.amount && props.lastAmount) {
-    return props.amount >= props.lastAmount;
-  }
-});
+const trandingUp = computed(() => props.amount >= props.lastAmount);
 
 const icon = computed(() =>
   trandingUp.value
