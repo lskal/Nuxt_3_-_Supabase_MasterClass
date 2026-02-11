@@ -15,14 +15,7 @@ const viewSelect = ref(transactionalViewOptions[1]);
     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 sm:gap-16 md-10"
   >
     <Trend
-      color="green"
-      title="Income"
-      :amount="4000"
-      :last-amount="3000"
-      :loading="false"
-    />
-    <Trend
-      color="red"
+      color="yellow"
       title="Income"
       :amount="4000"
       :last-amount="3000"
@@ -30,16 +23,23 @@ const viewSelect = ref(transactionalViewOptions[1]);
     />
     <Trend
       color="green"
-      title="Income"
+      title="Expense"
+      :amount="4000"
+      :last-amount="5000"
+      :loading="false"
+    />
+    <Trend
+      color="blue"
+      title="Investments"
       :amount="4000"
       :last-amount="3000"
       :loading="false"
     />
     <Trend
       color="red"
-      title="Income"
+      title="Saving"
       :amount="4000"
-      :last-amount="3000"
+      :last-amount="4100"
       :loading="false"
     />
   </section>
