@@ -1,5 +1,6 @@
 <script setup>
 import { transactionalViewOptions } from "~/constants";
+import Trend from "../components/Trend.vue";
 const viewSelect = ref(transactionalViewOptions[1]);
 </script>
 
@@ -9,5 +10,37 @@ const viewSelect = ref(transactionalViewOptions[1]);
     <div>
       <USelectMenu :items="transactionalViewOptions" v-model="viewSelect" />
     </div>
+  </section>
+  <section
+    class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 sm:gap-16 md-10"
+  >
+    <Trend
+      color="green"
+      title="Income"
+      :amount="4000"
+      :last-amount="3000"
+      :loading="false"
+    />
+    <Trend
+      color="red"
+      title="Income"
+      :amount="4000"
+      :last-amount="3000"
+      :loading="false"
+    />
+    <Trend
+      color="green"
+      title="Income"
+      :amount="4000"
+      :last-amount="3000"
+      :loading="false"
+    />
+    <Trend
+      color="red"
+      title="Income"
+      :amount="4000"
+      :last-amount="3000"
+      :loading="false"
+    />
   </section>
 </template>
