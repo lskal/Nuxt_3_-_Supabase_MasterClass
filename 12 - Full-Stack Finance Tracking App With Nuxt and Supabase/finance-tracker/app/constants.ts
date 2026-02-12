@@ -1,6 +1,6 @@
 export type TTrendColor = "green" | "red" | "yellow" | "blue" | "gray" | "pink";
 
-export const transactionalViewOptions = ["Yearly", "Monthly", "Daily"] as const;
+export const transactionalViewOptions = ["Yearly", "Monthly", "Daily"];
 
 export const colorMap: Record<TTrendColor, string> = {
   green: "text-green-600 dark:text-green-400",

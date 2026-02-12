@@ -1,7 +1,27 @@
-<script setup>
+<script setup lang="ts">
 import { transactionalViewOptions } from "~/constants";
-import Trend from "../components/Trend.vue";
+
+type TTransactionRow = {
+  id: number;
+  created_at: string;
+  amount: number;
+  type: string;
+  description: string | null;
+  category: string | null;
+};
+
+const supabase = useSupabaseClient();
 const viewSelect = ref(transactionalViewOptions[1]);
+
+const {
+  data: transactions,
+  pending,
+  error,
+} = await useAsyncData<TTransactionRow[]>("transactions", async () => {
+  const { data, error } = await supabase.from("transactions").select("*");
+  if (error) throw error;
+  return (data ?? []) as TTransactionRow[];
+});
 </script>
 
 <template>
@@ -44,10 +64,18 @@ const viewSelect = ref(transactionalViewOptions[1]);
     />
   </section>
 
-  <section>
-    <Transaction />
-    <Transaction />
-    <Transaction />
-    <Transaction />
+  <section class="mt-10">
+    <div v-if="pending">Loading...</div>
+    <div v-else-if="error" class="text-red-600">
+      {{ error.message }}
+    </div>
+
+    <Transaction
+      v-else-if="transactions"
+      v-for="transaction in transactions ?? []"
+      :key="transaction.id"
+      :transaction="transaction"
+    />
+    <div v-else>else</div>
   </section>
 </template>
