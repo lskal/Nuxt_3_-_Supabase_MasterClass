@@ -43,4 +43,11 @@ const viewSelect = ref(transactionalViewOptions[1]);
       :loading="false"
     />
   </section>
+
+  <section>
+    <Transaction />
+    <Transaction />
+    <Transaction />
+    <Transaction />
+  </section>
 </template>
