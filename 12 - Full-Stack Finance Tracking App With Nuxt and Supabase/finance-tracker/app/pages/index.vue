@@ -22,6 +22,21 @@ const {
   if (error) throw error;
   return (data ?? []) as TTransactionRow[];
 });
+
+type GroupedTransactions = { [key: string]: TTransactionRow[] };
+
+const transactionGroupedByDate = computed(() => {
+  const grouped: GroupedTransactions = {};
+
+  for (const transaction of transactions.value ?? []) {
+    const date = new Date(transaction.created_at).toISOString().slice(0, 10);
+
+    if (!grouped[date]) grouped[date] = [];
+    grouped[date].push(transaction);
+  }
+
+  return grouped;
+});
 </script>
 
 <template>

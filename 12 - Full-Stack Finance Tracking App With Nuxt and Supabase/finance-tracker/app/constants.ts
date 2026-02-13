@@ -19,3 +19,9 @@ export const getTrendColorClass = (color: unknown): string => {
   }
   return colorMap[DEFAULT_TREND_COLOR];
 };
+
+export const getIconColorClass = (condition: boolean) =>
+  condition ? colorMap.green : colorMap.red;
+
+export const getIcon = (condition: boolean, icon1: string, icon2: string) =>
+  condition ? icon1 : icon2;

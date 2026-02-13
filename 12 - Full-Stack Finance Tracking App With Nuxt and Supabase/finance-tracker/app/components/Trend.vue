@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { getTrendColorClass, colorMap, type TTrendColor } from "~/constants";
+import {
+  getTrendColorClass,
+  type TTrendColor,
+  getIconColorClass,
+  getIcon,
+} from "~/constants";
 
 const props = defineProps<{
   title: string;
@@ -12,17 +17,17 @@ const props = defineProps<{
 
 const colorClass = computed(() => getTrendColorClass(props.color));
 
-const trandingUp = computed(() => props.amount >= props.lastAmount);
+const isTrandingUp = computed(() => props.amount >= props.lastAmount);
 
 const icon = computed(() =>
-  trandingUp.value
-    ? "i-heroicons-solid-trending-up"
-    : "i-heroicons-solid-trending-down",
+  getIcon(
+    isTrandingUp.value,
+    "i-heroicons-solid-trending-up",
+    "i-heroicons-solid-trending-down",
+  ),
 );
 
-const iconColorClass = computed(() =>
-  trandingUp.value ? colorMap.green : colorMap.red,
-);
+const iconColorClass = computed(() => getIconColorClass(isTrandingUp.value));
 
 const persantageTrend = computed(() => {
   if (props.amount === 0 || props.lastAmount === 0) return "∞%";

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<!-- <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 import { getIcon, getIconColorClass } from "../constants";
 
@@ -66,4 +66,4 @@ const icon = computed(() =>
       </UDropdownMenu>
     </div>
   </div>
-</template>
+</template> -->
