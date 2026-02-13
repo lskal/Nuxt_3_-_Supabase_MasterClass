@@ -1,21 +1,15 @@
 <script setup lang="ts">
-import { transactionalViewOptions } from "~/constants";
-import DailyTransactionSummery from "../components/Daily-transaction.summery.vue";
-
-type TTransactionRow = {
-  id: number;
-  created_at: string;
-  amount: number;
-  type: string;
-  description: string | null;
-  category: string | null;
-};
+import {
+  transactionalViewOptions,
+  isIncomeType,
+  type TTransactionRow,
+} from "~/constants";
+import DailyTransactionSummery from "~/components/Daily-transaction.summery.vue";
 
 const supabase = useSupabaseClient();
-
 const viewSelect = ref(transactionalViewOptions[1]);
 
-// 1) Fetch (and get refresh())
+// 1) Fetch + refresh()
 const {
   data: transactions,
   pending,
@@ -41,20 +35,47 @@ const transactionGroupedByDate = computed<GroupedTransactions>(() => {
   return grouped;
 });
 
-// 3) Handler when a transaction is deleted
+// 3) Refresh after delete (emitted from <Transaction />)
 const handleDeleted = async () => {
   await refresh();
 };
+
+// 4) Income / Expense lists (using your helper)
+const income = computed(() =>
+  (transactions.value ?? []).filter((t) => isIncomeType(t.type)),
+);
+const expense = computed(() =>
+  (transactions.value ?? []).filter((t) => !isIncomeType(t.type)),
+);
+
+const incomeCount = computed(() => income.value.length);
+const expenseCount = computed(() => expense.value.length);
+
+const incomeTotal = computed(() =>
+  income.value.reduce((sum, t) => sum + t.amount, 0),
+);
+const expenseTotal = computed(() =>
+  expense.value.reduce((sum, t) => sum + t.amount, 0),
+);
 </script>
 
 <template>
   <section class="flex items-center justify-between mb-10">
-    <h1 class="text-4xl font-extrabold">Summary</h1>
     <div>
+      <h1 class="text-4xl font-extrabold">Summary</h1>
+
+      <div class="text-gray-500 dark:text-gray-400 mt-2">
+        You have {{ incomeCount }} incomes and {{ expenseCount }} expenses this
+        period
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
       <USelectMenu
         :items="[...transactionalViewOptions]"
         v-model="viewSelect"
       />
+      <UButton icon="i-heroicons-plus-circle" label="Add" />
     </div>
   </section>
 
@@ -64,15 +85,15 @@ const handleDeleted = async () => {
     <Trend
       color="yellow"
       title="Income"
-      :amount="4000"
-      :last-amount="3000"
+      :amount="incomeTotal"
+      :last-amount="4100"
       :loading="pending"
     />
     <Trend
       color="pink"
       title="Expense"
-      :amount="4000"
-      :last-amount="5000"
+      :amount="expenseTotal"
+      :last-amount="3800"
       :loading="pending"
     />
     <Trend
@@ -91,7 +112,7 @@ const handleDeleted = async () => {
     />
   </section>
 
-  <section v-if="!pending">
+  <section v-if="!pending" class="mt-10">
     <div
       v-for="(transactionsOnDay, date) in transactionGroupedByDate"
       :key="date"

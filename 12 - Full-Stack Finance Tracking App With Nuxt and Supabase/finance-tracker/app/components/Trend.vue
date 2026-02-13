@@ -30,14 +30,11 @@ const icon = computed(() =>
 const iconColorClass = computed(() => getIconColorClass(isTrandingUp.value));
 
 const persantageTrend = computed(() => {
-  if (props.amount === 0 || props.lastAmount === 0) return "∞%";
+  if (props.lastAmount === 0) return "∞%";
 
-  const bigger = Math.max(props.amount, props.lastAmount);
-  const smaller = Math.min(props.amount, props.lastAmount);
+  const change = ((props.amount - props.lastAmount) / props.lastAmount) * 100;
 
-  const ratio = ((bigger - smaller) / smaller) * 100;
-
-  return `${Math.ceil(ratio)}%`;
+  return `${Math.abs(Math.round(change))}%`;
 });
 
 const currency = useCurrency(props.amount);
