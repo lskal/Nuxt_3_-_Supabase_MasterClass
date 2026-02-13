@@ -6,21 +6,17 @@ const props = defineProps<{
   transaction: TTransactionRow;
 }>();
 
-const items = [
-  {
-    label: "Edit",
-    icon: "i-heroicons-pencil-square-20-solid",
-    onSelect: () => console.log("Edit", props.transaction.id),
-  },
-  {
-    label: "Delete",
-    icon: "i-heroicons-trash-20-solid",
-    onSelect: () => deleteTransaction,
-  },
-] satisfies DropdownMenuItem[];
+const emit = defineEmits<{
+  (e: "delete", id: number): void;
+  (e: "edit", id: number): void;
+}>();
+
+const supabase = useSupabaseClient();
+const toast = useToast();
+const isLoading = ref(false);
 
 const isIncome = computed(
-  () => props.transaction.type.toLocaleLowerCase().trim() === "income",
+  () => props.transaction.type.toLowerCase().trim() === "income",
 );
 
 const iconColorClass = computed(() => getIconColorClass(isIncome.value));
@@ -35,17 +31,47 @@ const icon = computed(() =>
 
 const currency = useCurrency(props.transaction.amount);
 
-const isLoading = ref(false);
-
 const deleteTransaction = async () => {
+  if (isLoading.value) return;
   isLoading.value = true;
 
   try {
-  } catch {
+    const { error } = await supabase
+      .from("transactions")
+      .delete()
+      .eq("id", props.transaction.id);
+
+    if (error) throw error;
+
+    toast.add({
+      title: "Transaction deleted",
+      icon: "i-heroicons-check-circle",
+    });
+
+    emit("delete", props.transaction.id);
+  } catch (err: any) {
+    toast.add({
+      title: "Delete failed",
+      description: err?.message ?? "Something went wrong",
+      icon: "i-heroicons-exclamation-circle",
+    });
   } finally {
     isLoading.value = false;
   }
 };
+
+const items = [
+  {
+    label: "Edit",
+    icon: "i-heroicons-pencil-square-20-solid",
+    onSelect: () => emit("edit", props.transaction.id),
+  },
+  {
+    label: "Delete",
+    icon: "i-heroicons-trash-20-solid",
+    onSelect: deleteTransaction,
+  },
+] satisfies DropdownMenuItem[];
 </script>
 
 <template>
@@ -53,13 +79,13 @@ const deleteTransaction = async () => {
     class="grid grid-cols-2 py-4 border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100"
   >
     <div class="flex items-center justify-between">
-      <div class="flex items-center space-x-1">
-        <UIcon :name="icon" :class="iconColorClass" />
+      <div class="flex items-center space-x-2">
+        <UIcon :name="icon" class="size-5" :class="iconColorClass" />
         <div>{{ transaction.description ?? transaction.type }}</div>
       </div>
 
-      <UBadge class="text-black" v-if="transaction.category"
-        >{{ transaction.category }}
+      <UBadge v-if="transaction.category" class="text-black">
+        {{ transaction.category }}
       </UBadge>
     </div>
 
@@ -67,7 +93,11 @@ const deleteTransaction = async () => {
       <div>{{ currency }}</div>
 
       <UDropdownMenu :items="items" :content="{ align: 'start' }">
-        <UButton variant="ghost" icon="i-heroicons-ellipsis-horizontal" />
+        <UButton
+          variant="ghost"
+          icon="i-heroicons-ellipsis-horizontal"
+          :loading="isLoading"
+        />
       </UDropdownMenu>
     </div>
   </div>
