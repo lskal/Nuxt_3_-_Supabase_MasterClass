@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { transactionalViewOptions } from "~/constants";
+import DailyTransactionSummery from "../components/Daily-transaction.summery.vue";
 
 type TTransactionRow = {
   id: number;
@@ -80,17 +81,17 @@ const transactionGroupedByDate = computed(() => {
   </section>
 
   <section class="mt-10">
-    <div v-if="pending">Loading...</div>
-    <div v-else-if="error" class="text-red-600">
-      {{ error.message }}
+    <div
+      v-for="(transactionsOnDay, date) in transactionGroupedByDate"
+      :key="date"
+      class="mb-10"
+    >
+      <DailyTransactionSummery :date="date" :transactions="transactionsOnDay" />
+      <Transaction
+        v-for="transaction in transactionsOnDay"
+        :key="transaction.id"
+        :transaction="transaction"
+      />
     </div>
-
-    <Transaction
-      v-else-if="transactions"
-      v-for="transaction in transactions ?? []"
-      :key="transaction.id"
-      :transaction="transaction"
-    />
-    <div v-else>else</div>
   </section>
 </template>

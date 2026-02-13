@@ -11,6 +11,15 @@ export const colorMap: Record<TTrendColor, string> = {
   pink: "text-pink-600 dark:text-pink-400",
 };
 
+export type TTransactionRow = {
+  id: number;
+  created_at: string;
+  amount: number;
+  type: string;
+  description: string | null;
+  category: string | null;
+};
+
 export const DEFAULT_TREND_COLOR: TTrendColor = "gray";
 
 export const getTrendColorClass = (color: unknown): string => {

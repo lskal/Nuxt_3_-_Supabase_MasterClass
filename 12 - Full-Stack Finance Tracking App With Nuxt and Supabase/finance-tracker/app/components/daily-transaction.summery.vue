@@ -1,69 +1,36 @@
-<!-- <script setup lang="ts">
-import type { DropdownMenuItem } from "@nuxt/ui";
-import { getIcon, getIconColorClass } from "../constants";
-
-type TTransactionRow = {
-  id: number;
-  created_at: string;
-  amount: number;
-  type: string;
-  description: string | null;
-  category: string | null;
-};
+<script setup lang="ts">
+import type { TTransactionRow } from "../constants";
 
 const props = defineProps<{
-  transaction: TTransactionRow;
+  date: string;
+  transactions: TTransactionRow[];
 }>();
 
-const items = [
-  {
-    label: "Edit",
-    icon: "i-heroicons-pencil-square-20-solid",
-    onSelect: () => console.log("Edit", props.transaction.id),
-  },
-  {
-    label: "Delete",
-    icon: "i-heroicons-trash-20-solid",
-    onSelect: () => console.log("Delete", props.transaction.id),
-  },
-] satisfies DropdownMenuItem[];
+const sum = computed(() => {
+  let sum = 0;
 
-const isIncome = computed(
-  () => props.transaction.type.toLocaleLowerCase().trim() === "income",
-);
+  for (const transaction of props.transactions) {
+    if (transaction.type.toLowerCase().trim() === "income") {
+      sum += transaction.amount;
+    } else {
+      sum -= transaction.amount;
+    }
+  }
 
-const iconColorClass = computed(() => getIconColorClass(isIncome.value));
+  return sum;
+});
 
-const icon = computed(() =>
-  getIcon(
-    isIncome.value,
-    "i-heroicons-arrow-up-right",
-    "i-heroicons-arrow-down-left",
-  ),
-);
+const currency = useCurrency(sum);
 </script>
 
 <template>
   <div
-    class="grid grid-cols-2 py-4 border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100"
+    class="grid grid-cols-2 py-4 border-b border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 font-bold"
   >
     <div class="flex items-center justify-between">
-      <div class="flex items-center space-x-1">
-        <UIcon :name="icon" :class="iconColorClass" />
-        <div>{{ transaction.description ?? transaction.type }}</div>
-      </div>
-
-      <UBadge class="text-black" v-if="transaction.category"
-        >{{ transaction.category }}
-      </UBadge>
+      {{ date }}
     </div>
 
-    <div class="flex items-center justify-end space-x-2">
-      <div>{{ useCurrency(transaction.amount) }}</div>
-
-      <UDropdownMenu :items="items" :content="{ align: 'start' }">
-        <UButton variant="ghost" icon="i-heroicons-ellipsis-horizontal" />
-      </UDropdownMenu>
-    </div>
+    <div class="flex items-center justify-end mr-10">{{ currency }}</div>
   </div>
-</template> -->
+</template>

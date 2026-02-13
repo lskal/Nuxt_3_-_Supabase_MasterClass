@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
-import { getIcon, getIconColorClass } from "../constants";
-
-type TTransactionRow = {
-  id: number;
-  created_at: string;
-  amount: number;
-  type: string;
-  description: string | null;
-  category: string | null;
-};
+import { getIcon, getIconColorClass, type TTransactionRow } from "../constants";
 
 const props = defineProps<{
   transaction: TTransactionRow;
@@ -24,7 +15,7 @@ const items = [
   {
     label: "Delete",
     icon: "i-heroicons-trash-20-solid",
-    onSelect: () => console.log("Delete", props.transaction.id),
+    onSelect: () => deleteTransaction,
   },
 ] satisfies DropdownMenuItem[];
 
@@ -41,6 +32,20 @@ const icon = computed(() =>
     "i-heroicons-arrow-down-left",
   ),
 );
+
+const currency = useCurrency(props.transaction.amount);
+
+const isLoading = ref(false);
+
+const deleteTransaction = async () => {
+  isLoading.value = true;
+
+  try {
+  } catch {
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
 <template>
@@ -59,7 +64,7 @@ const icon = computed(() =>
     </div>
 
     <div class="flex items-center justify-end space-x-2">
-      <div>{{ useCurrency(transaction.amount) }}</div>
+      <div>{{ currency }}</div>
 
       <UDropdownMenu :items="items" :content="{ align: 'start' }">
         <UButton variant="ghost" icon="i-heroicons-ellipsis-horizontal" />
