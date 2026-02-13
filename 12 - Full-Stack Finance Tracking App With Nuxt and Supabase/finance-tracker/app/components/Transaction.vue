@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
-import { getIcon, getIconColorClass, type TTransactionRow } from "../constants";
+import {
+  getIcon,
+  getIconColorClass,
+  isIncomeType,
+  type TTransactionRow,
+} from "../constants";
 
-const props = defineProps<{
-  transaction: TTransactionRow;
-}>();
+const props = defineProps<{ transaction: TTransactionRow }>();
 
 const emit = defineEmits<{
   (e: "delete", id: number): void;
@@ -15,9 +18,7 @@ const supabase = useSupabaseClient();
 const toast = useToast();
 const isLoading = ref(false);
 
-const isIncome = computed(
-  () => props.transaction.type.toLowerCase().trim() === "income",
-);
+const isIncome = computed(() => isIncomeType(props.transaction.type));
 
 const iconColorClass = computed(() => getIconColorClass(isIncome.value));
 
