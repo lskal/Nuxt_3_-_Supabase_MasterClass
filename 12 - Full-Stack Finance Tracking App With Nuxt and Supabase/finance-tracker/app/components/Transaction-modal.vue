@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, computed } from "vue";
+import { reactive, computed, ref } from "vue";
 import { z } from "zod";
 import {
   categoriesOptions,
@@ -28,15 +28,19 @@ const emit = defineEmits<{
 
 const today = new Date().toISOString().slice(0, 10);
 
-const state = reactive({
+const formRef = ref<any>(null);
+
+const initialState = {
   type: undefined as TTransactionType | undefined,
   amount: 0,
   created_at: today,
   description: "",
   category: undefined as TCategory | undefined,
-});
+};
 
-// base scherma
+const state = reactive({ ...initialState });
+
+// base schema
 const baseSchema = z.object({
   created_at: z.string().min(1, "Date is required"),
   description: z.string().optional(),
@@ -44,18 +48,9 @@ const baseSchema = z.object({
 });
 
 // type schema
-const incomeSchema = z.object({
-  type: z.literal("Income"),
-});
-
-const savingSchema = z.object({
-  type: z.literal("Saving"),
-});
-
-const investmentSchema = z.object({
-  type: z.literal("Investment"),
-});
-
+const incomeSchema = z.object({ type: z.literal("Income") });
+const savingSchema = z.object({ type: z.literal("Saving") });
+const investmentSchema = z.object({ type: z.literal("Investment") });
 const expenseSchema = z.object({
   type: z.literal("Expense"),
   category: z.enum(categoriesOptions),
@@ -74,6 +69,16 @@ const schema = z.intersection(
 
 const showCategory = computed(() => state.type === "Expense");
 
+const resetForm = () => {
+  Object.assign(state, initialState);
+  formRef.value?.clear();
+};
+
+const closeModal = () => {
+  resetForm();
+  emit("close");
+};
+
 const onSubmit = () => {
   if (!state.type) return;
 
@@ -86,6 +91,8 @@ const onSubmit = () => {
   };
 
   emit("submit", payload);
+
+  resetForm();
   emit("close");
 };
 </script>
@@ -96,7 +103,7 @@ const onSubmit = () => {
       {{ props.title ?? "Add Transaction" }}
     </div>
 
-    <UForm :state="state" :schema="schema" @submit="onSubmit">
+    <UForm ref="formRef" :state="state" :schema="schema" @submit="onSubmit">
       <UFormField label="Transaction Type" name="type" required class="mb-4">
         <USelect
           v-model="state.type"
@@ -146,7 +153,7 @@ const onSubmit = () => {
       </UFormField>
 
       <div class="flex justify-end gap-2">
-        <UButton type="button" variant="soft" @click="emit('close')">
+        <UButton type="button" variant="soft" @click="closeModal">
           Cancel
         </UButton>
 
