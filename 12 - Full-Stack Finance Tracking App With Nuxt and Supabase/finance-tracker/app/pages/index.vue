@@ -1,3 +1,4 @@
+<!-- 12 - Full-Stack Finance Tracking App With Nuxt and Supabase/finance-tracker/app/pages/index.vue -->
 <script setup lang="ts">
 import {
   transactionalViewOptions,
@@ -10,6 +11,7 @@ const supabase = useSupabaseClient();
 const viewSelect = ref(transactionalViewOptions[1]);
 const isOpen = ref(false);
 
+// with default so transactions is never undefined
 const {
   data: transactions,
   pending,
@@ -21,16 +23,14 @@ const {
     if (error) throw error;
     return data ?? [];
   },
-  {
-    default: () => [],
-  },
+  { default: () => [] },
 );
 
 type GroupedTransactions = Record<string, TTransactionRow[]>;
 
 const transactionGroupedByDate = computed<GroupedTransactions>(() => {
   const grouped: GroupedTransactions = {};
-  for (const t of transactions.value ?? []) {
+  for (const t of transactions.value) {
     const date = new Date(t.created_at).toISOString().slice(0, 10);
     (grouped[date] ??= []).push(t);
   }
@@ -42,10 +42,10 @@ const handleDeleted = async () => {
 };
 
 const income = computed(() =>
-  (transactions.value ?? []).filter((t) => isIncomeType(t.type)),
+  transactions.value.filter((t) => isIncomeType(t.type)),
 );
 const expense = computed(() =>
-  (transactions.value ?? []).filter((t) => !isIncomeType(t.type)),
+  transactions.value.filter((t) => !isIncomeType(t.type)),
 );
 
 const incomeCount = computed(() => income.value.length);
@@ -57,6 +57,8 @@ const incomeTotal = computed(() =>
 const expenseTotal = computed(() =>
   expense.value.reduce((sum, t) => sum + t.amount, 0),
 );
+
+const closeModal = () => (isOpen.value = false);
 </script>
 
 <template>
@@ -85,17 +87,22 @@ const expenseTotal = computed(() =>
     </div>
   </section>
 
-  <!--  Modal -->
-  <UModal v-model:open="isOpen">
+  <!-- Modal (Nuxt UI v4 “controlled open state”) -->
+  <UModal
+    :open="isOpen"
+    @update:open="(v) => (isOpen = v)"
+    :ui="{ content: 'p-0' }"
+  >
     <template #content>
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
             <div class="font-semibold">Add Transaction</div>
+
             <UButton
               icon="i-heroicons-x-mark"
               variant="ghost"
-              @click="isOpen = false"
+              @click="closeModal()"
             />
           </div>
         </template>
