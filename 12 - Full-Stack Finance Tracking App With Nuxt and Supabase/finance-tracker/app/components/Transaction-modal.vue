@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { reactive } from "vue";
+import {
+  categoriesOptions,
+  typesOptions,
+  type TCategory,
+  type TTransactionType,
+} from "~/constants";
 
 const props = defineProps<{
   title?: string;
@@ -10,11 +16,11 @@ const emit = defineEmits<{
   (
     e: "submit",
     payload: {
-      type: string;
+      type: TTransactionType;
       amount: number;
       created_at: string;
       description: string;
-      category: string;
+      category: TCategory;
     },
   ): void;
 }>();
@@ -22,14 +28,17 @@ const emit = defineEmits<{
 const today = new Date().toISOString().slice(0, 10);
 
 const state = reactive({
-  type: "" as string,
-  amount: 0 as number,
+  type: undefined as TTransactionType | undefined,
+  amount: 0,
   created_at: today,
   description: "",
-  category: "" as string,
+  category: undefined as TCategory | undefined,
 });
 
 const onSubmit = () => {
+  // required fields start empty, so guard before emitting
+  if (!state.type || !state.category) return;
+
   emit("submit", {
     type: state.type,
     amount: Number(state.amount) || 0,
@@ -37,6 +46,7 @@ const onSubmit = () => {
     description: state.description,
     category: state.category,
   });
+
   emit("close");
 };
 </script>
@@ -51,13 +61,17 @@ const onSubmit = () => {
       <UFormField label="Transaction Type" name="type" required class="mb-4">
         <USelect
           v-model="state.type"
-          :items="['Income', 'Expense', 'Saving', 'Investment']"
+          :items="[...typesOptions]"
           placeholder="Select the transaction type"
         />
       </UFormField>
 
       <UFormField label="Amount" name="amount" required class="mb-4">
-        <UInput v-model="state.amount" type="number" placeholder="Amount" />
+        <UInput
+          v-model.number="state.amount"
+          type="number"
+          placeholder="Amount"
+        />
       </UFormField>
 
       <UFormField
@@ -81,7 +95,7 @@ const onSubmit = () => {
       <UFormField label="Category" name="category" required class="mb-4">
         <USelect
           v-model="state.category"
-          :items="['Food', 'Housing', 'Car', 'Entertainment']"
+          :items="[...categoriesOptions]"
           placeholder="Category"
         />
       </UFormField>
