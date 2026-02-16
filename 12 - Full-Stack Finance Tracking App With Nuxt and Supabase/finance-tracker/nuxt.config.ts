@@ -12,4 +12,10 @@ export default defineNuxtConfig({
     redirect: false,
     // types: "~~/shared/utils/types/database.ts",
   },
+
+  runtimeConfig: {
+    public: {
+      baseUrl: process.env.BASE_URL ?? "http://localhost:3000",
+    },
+  },
 });

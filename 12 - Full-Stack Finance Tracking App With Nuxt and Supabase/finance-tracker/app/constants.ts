@@ -3,6 +3,12 @@ export type TTrendColor = "green" | "red" | "yellow" | "blue" | "gray" | "pink";
 export const transactionalViewOptions = ["Yearly", "Monthly", "Daily"] as const;
 export type TTransactionalView = (typeof transactionalViewOptions)[number];
 
+const categories = ["Food", "Housing", "Car", "Entertainment"] as const;
+export type TCategory = (typeof categories)[number];
+
+const types = ["Income", "Expense", "Saving", "Investment"] as const;
+export type TTransactionType = (typeof types)[number];
+
 export const colorMap: Record<TTrendColor, string> = {
   green: "text-green-600 dark:text-green-400",
   red: "text-red-600 dark:text-red-400",

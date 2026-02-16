@@ -106,8 +106,7 @@ const closeModal = () => (isOpen.value = false);
             />
           </div>
         </template>
-
-        <div class="py-2">Hello!</div>
+        <TransactionModal @close="closeModal" />
       </UCard>
     </template>
   </UModal>
