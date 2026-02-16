@@ -1,3 +1,4 @@
+<!-- app/components/Transaction.vue -->
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 import {
@@ -19,7 +20,6 @@ const toast = useToast();
 const isLoading = ref(false);
 
 const isIncome = computed(() => isIncomeType(props.transaction.type));
-
 const iconColorClass = computed(() => getIconColorClass(isIncome.value));
 
 const icon = computed(() =>
@@ -77,19 +77,23 @@ const items = [
 
 <template>
   <div
-    class="grid grid-cols-2 py-4 border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100"
+    class="grid grid-cols-3 py-4 border-b border-gray-200 dark:border-gray-800 text-gray-900 dark:text-gray-100"
   >
-    <div class="flex items-center justify-between">
-      <div class="flex items-center space-x-2">
+    <!-- Left side spans 2 columns now -->
+    <div class="flex items-center justify-between space-x-4 col-span-2">
+      <div class="flex items-center space-x-2 min-w-0">
         <UIcon :name="icon" class="size-5" :class="iconColorClass" />
-        <div>{{ transaction.description ?? transaction.type }}</div>
+        <div class="truncate">
+          {{ transaction.description ?? transaction.type }}
+        </div>
       </div>
 
-      <UBadge v-if="transaction.category" class="text-black">
+      <UBadge v-if="transaction.category" class="text-black shrink-0">
         {{ transaction.category }}
       </UBadge>
     </div>
 
+    <!-- Right side is the 3rd column -->
     <div class="flex items-center justify-end space-x-2">
       <div>{{ currency }}</div>
 

@@ -11,7 +11,6 @@ const supabase = useSupabaseClient();
 const viewSelect = ref(transactionalViewOptions[1]);
 const isOpen = ref(false);
 
-// with default so transactions is never undefined
 const {
   data: transactions,
   pending,
@@ -19,7 +18,11 @@ const {
 } = await useAsyncData<TTransactionRow[]>(
   "transactions",
   async () => {
-    const { data, error } = await supabase.from("transactions").select("*");
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("*")
+      .order("created_at", { ascending: false });
+
     if (error) throw error;
     return data ?? [];
   },
