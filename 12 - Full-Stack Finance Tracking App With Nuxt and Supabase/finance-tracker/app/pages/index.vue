@@ -8,39 +8,39 @@ import DailyTransactionSummery from "~/components/Daily-transaction.summery.vue"
 
 const supabase = useSupabaseClient();
 const viewSelect = ref(transactionalViewOptions[1]);
+const isOpen = ref(false);
 
-// 1) Fetch + refresh()
 const {
   data: transactions,
   pending,
   refresh,
-  error,
-} = await useAsyncData<TTransactionRow[]>("transactions", async () => {
-  const { data, error } = await supabase.from("transactions").select("*");
-  if (error) throw error;
-  return data ?? [];
-});
+} = await useAsyncData<TTransactionRow[]>(
+  "transactions",
+  async () => {
+    const { data, error } = await supabase.from("transactions").select("*");
+    if (error) throw error;
+    return data ?? [];
+  },
+  {
+    default: () => [],
+  },
+);
 
-// 2) Group by date
 type GroupedTransactions = Record<string, TTransactionRow[]>;
 
 const transactionGroupedByDate = computed<GroupedTransactions>(() => {
   const grouped: GroupedTransactions = {};
-
   for (const t of transactions.value ?? []) {
     const date = new Date(t.created_at).toISOString().slice(0, 10);
     (grouped[date] ??= []).push(t);
   }
-
   return grouped;
 });
 
-// 3) Refresh after delete (emitted from <Transaction />)
 const handleDeleted = async () => {
   await refresh();
 };
 
-// 4) Income / Expense lists (using your helper)
 const income = computed(() =>
   (transactions.value ?? []).filter((t) => isIncomeType(t.type)),
 );
@@ -60,10 +60,10 @@ const expenseTotal = computed(() =>
 </script>
 
 <template>
+  <!-- Header -->
   <section class="flex items-center justify-between mb-10">
     <div>
       <h1 class="text-4xl font-extrabold">Summary</h1>
-
       <div class="text-gray-500 dark:text-gray-400 mt-2">
         You have {{ incomeCount }} incomes and {{ expenseCount }} expenses this
         period
@@ -75,10 +75,37 @@ const expenseTotal = computed(() =>
         :items="[...transactionalViewOptions]"
         v-model="viewSelect"
       />
-      <UButton icon="i-heroicons-plus-circle" label="Add" />
+
+      <UButton
+        icon="i-heroicons-plus-circle"
+        variant="solid"
+        label="Add"
+        @click="isOpen = true"
+      />
     </div>
   </section>
 
+  <!--  Modal -->
+  <UModal v-model:open="isOpen">
+    <template #content>
+      <UCard>
+        <template #header>
+          <div class="flex items-center justify-between">
+            <div class="font-semibold">Add Transaction</div>
+            <UButton
+              icon="i-heroicons-x-mark"
+              variant="ghost"
+              @click="isOpen = false"
+            />
+          </div>
+        </template>
+
+        <div class="py-2">Hello!</div>
+      </UCard>
+    </template>
+  </UModal>
+
+  <!-- Trends -->
   <section
     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 sm:gap-16 md-10"
   >
@@ -112,6 +139,7 @@ const expenseTotal = computed(() =>
     />
   </section>
 
+  <!-- Transactions -->
   <section v-if="!pending" class="mt-10">
     <div
       v-for="(transactionsOnDay, date) in transactionGroupedByDate"
