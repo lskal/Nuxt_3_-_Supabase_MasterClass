@@ -7,28 +7,23 @@ import {
   type TCategory,
   type TTransactionType,
 } from "~/constants";
+import type { Database } from "~/types/database.types";
+type TransactionInsert = Database["public"]["Tables"]["transactions"]["Insert"];
 
-const props = defineProps<{
-  title?: string;
-}>();
+const props = defineProps<{ title?: string }>();
 
 const emit = defineEmits<{
   (e: "close"): void;
-  (
-    e: "submit",
-    payload: {
-      type: TTransactionType;
-      amount: number;
-      created_at: string;
-      description: string;
-      category?: TCategory;
-    },
-  ): void;
+  (e: "saved"): void;
 }>();
+
+const supabase = useSupabaseClient<Database>();
+const toast = useToast();
 
 const today = new Date().toISOString().slice(0, 10);
 
 const formRef = ref<any>(null);
+const isLoading = ref(false);
 
 const initialState = {
   type: undefined as TTransactionType | undefined,
@@ -79,21 +74,47 @@ const closeModal = () => {
   emit("close");
 };
 
-const onSubmit = () => {
+const save = async () => {
+  // Validate schema errors before saving
+  await formRef.value?.validate();
+  if (formRef.value?.errors?.length) return;
+
   if (!state.type) return;
 
-  const payload = {
-    type: state.type,
-    amount: Number(state.amount) || 0,
-    created_at: state.created_at,
-    description: state.description,
-    category: state.type === "Expense" ? state.category : undefined,
-  };
+  isLoading.value = true;
 
-  emit("submit", payload);
+  try {
+    const payload: TransactionInsert = {
+      type: state.type,
+      amount: Number(state.amount) || 0,
+      created_at: state.created_at,
+      description: state.description || null,
+      category: state.type === "Expense" ? (state.category ?? null) : null,
+    };
 
-  resetForm();
-  emit("close");
+    const { error } = await (supabase as any)
+      .from("transactions")
+      .insert(payload as any);
+
+    if (error) throw error;
+
+    toast.add({
+      title: "Transaction saved",
+      icon: "i-heroicons-check-circle",
+    });
+
+    emit("saved");
+    resetForm();
+    emit("close");
+  } catch (e: any) {
+    toast.add({
+      title: "Transaction not saved",
+      description: e?.message ?? "Something went wrong",
+      icon: "i-heroicons-exclamation-circle",
+    });
+  } finally {
+    isLoading.value = false;
+  }
 };
 </script>
 
@@ -103,7 +124,7 @@ const onSubmit = () => {
       {{ props.title ?? "Add Transaction" }}
     </div>
 
-    <UForm ref="formRef" :state="state" :schema="schema" @submit="onSubmit">
+    <UForm ref="formRef" :state="state" :schema="schema" @submit="save">
       <UFormField label="Transaction Type" name="type" required class="mb-4">
         <USelect
           v-model="state.type"
@@ -157,7 +178,9 @@ const onSubmit = () => {
           Cancel
         </UButton>
 
-        <UButton type="submit" variant="solid"> Save </UButton>
+        <UButton type="submit" variant="solid" :loading="isLoading">
+          Save
+        </UButton>
       </div>
     </UForm>
   </div>

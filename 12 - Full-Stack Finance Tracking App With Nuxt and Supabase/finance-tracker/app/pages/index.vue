@@ -109,7 +109,15 @@ const closeModal = () => (isOpen.value = false);
             />
           </div>
         </template>
-        <TransactionModal @close="closeModal" />
+        <TransactionModal
+          @close="closeModal"
+          @saved="
+            () => {
+              closeModal();
+              refresh();
+            }
+          "
+        />
       </UCard>
     </template>
   </UModal>
