@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { reactive } from "vue";
+import { reactive, computed } from "vue";
+import { z } from "zod";
 import {
   categoriesOptions,
   typesOptions,
@@ -20,7 +21,7 @@ const emit = defineEmits<{
       amount: number;
       created_at: string;
       description: string;
-      category: TCategory;
+      category?: TCategory;
     },
   ): void;
 }>();
@@ -35,18 +36,56 @@ const state = reactive({
   category: undefined as TCategory | undefined,
 });
 
-const onSubmit = () => {
-  // required fields start empty, so guard before emitting
-  if (!state.type || !state.category) return;
+// base scherma
+const baseSchema = z.object({
+  created_at: z.string().min(1, "Date is required"),
+  description: z.string().optional(),
+  amount: z.number().positive("Amount needs to be more than 0"),
+});
 
-  emit("submit", {
+// type schema
+const incomeSchema = z.object({
+  type: z.literal("Income"),
+});
+
+const savingSchema = z.object({
+  type: z.literal("Saving"),
+});
+
+const investmentSchema = z.object({
+  type: z.literal("Investment"),
+});
+
+const expenseSchema = z.object({
+  type: z.literal("Expense"),
+  category: z.enum(categoriesOptions),
+});
+
+// Full schema
+const schema = z.intersection(
+  z.discriminatedUnion("type", [
+    incomeSchema,
+    expenseSchema,
+    savingSchema,
+    investmentSchema,
+  ]),
+  baseSchema,
+);
+
+const showCategory = computed(() => state.type === "Expense");
+
+const onSubmit = () => {
+  if (!state.type) return;
+
+  const payload = {
     type: state.type,
     amount: Number(state.amount) || 0,
     created_at: state.created_at,
     description: state.description,
-    category: state.category,
-  });
+    category: state.type === "Expense" ? state.category : undefined,
+  };
 
+  emit("submit", payload);
   emit("close");
 };
 </script>
@@ -57,7 +96,7 @@ const onSubmit = () => {
       {{ props.title ?? "Add Transaction" }}
     </div>
 
-    <UForm :state="state" @submit="onSubmit">
+    <UForm :state="state" :schema="schema" @submit="onSubmit">
       <UFormField label="Transaction Type" name="type" required class="mb-4">
         <USelect
           v-model="state.type"
@@ -92,7 +131,13 @@ const onSubmit = () => {
         <UInput v-model="state.description" placeholder="Description" />
       </UFormField>
 
-      <UFormField label="Category" name="category" required class="mb-4">
+      <UFormField
+        v-if="showCategory"
+        label="Category"
+        name="category"
+        required
+        class="mb-4"
+      >
         <USelect
           v-model="state.category"
           :items="[...categoriesOptions]"
