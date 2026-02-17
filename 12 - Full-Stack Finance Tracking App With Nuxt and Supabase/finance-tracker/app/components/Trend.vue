@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, toRef } from "vue";
 import {
   getTrendColorClass,
   type TTrendColor,
@@ -17,27 +17,26 @@ const props = defineProps<{
 
 const colorClass = computed(() => getTrendColorClass(props.color));
 
-const isTrandingUp = computed(() => props.amount >= props.lastAmount);
+const isTrendingUp = computed(() => props.amount >= props.lastAmount);
 
 const icon = computed(() =>
   getIcon(
-    isTrandingUp.value,
+    isTrendingUp.value,
     "i-heroicons-solid-trending-up",
     "i-heroicons-solid-trending-down",
   ),
 );
 
-const iconColorClass = computed(() => getIconColorClass(isTrandingUp.value));
+const iconColorClass = computed(() => getIconColorClass(isTrendingUp.value));
 
-const persantageTrend = computed(() => {
+const percentageTrend = computed(() => {
   if (props.lastAmount === 0) return "∞%";
 
   const change = ((props.amount - props.lastAmount) / props.lastAmount) * 100;
-
   return `${Math.abs(Math.round(change))}%`;
 });
 
-const currency = useCurrency(props.amount);
+const currency = useCurrency(toRef(props, "amount"));
 </script>
 
 <template>
@@ -58,7 +57,7 @@ const currency = useCurrency(props.amount);
       <div v-else class="flex space-x-1 items-center text-sm">
         <UIcon :name="icon" class="size-6" :class="iconColorClass" />
         <div class="text-gray-500 dark:text-gray-400">
-          {{ persantageTrend }} vs last period
+          {{ percentageTrend }} vs last period
         </div>
       </div>
     </div>

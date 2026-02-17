@@ -1,20 +1,15 @@
 <script setup lang="ts">
 import { transactionalViewOptions } from "~/constants";
-import DailyTransactionSummery from "~/components/Daily-transaction.summery.vue";
+import DailyTransactionSummery from "../components/daily-transaction.summery.vue";
+import { useSelectedTimePeriod } from "../composables/useSelectedTimePeriod";
 
 const viewSelect = ref(transactionalViewOptions[1]);
 const isOpen = ref(false);
 
-const {
-  pending,
-  incomeTotal,
-  expenseTotal,
-  groupedByDate,
-  refresh,
-  fetchTransactions,
-} = useTransactions();
+const dates = useSelectedTimePeriod(viewSelect);
 
-onMounted(fetchTransactions);
+const { pending, incomeTotal, expenseTotal, groupedByDate, refresh } =
+  useTransactions(dates);
 
 const closeModal = () => (isOpen.value = false);
 </script>
@@ -25,7 +20,6 @@ const closeModal = () => (isOpen.value = false);
     <div>
       <h1 class="text-4xl font-extrabold">Summary</h1>
       <div class="text-gray-500 dark:text-gray-400 mt-2">
-        <!-- Optional: if you want counts again, add them to composable -->
         Your transactions overview for this period
       </div>
     </div>

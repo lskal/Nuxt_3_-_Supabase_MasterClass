@@ -1,4 +1,3 @@
-<!-- app/components/Transaction.vue -->
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 import {
