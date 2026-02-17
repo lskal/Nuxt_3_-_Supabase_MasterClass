@@ -16,6 +16,8 @@ const {
   expenseCount,
   incomeTotal,
   expenseTotal,
+  investmentTotal,
+  savingTotal,
   grouped: { byDate },
 } = useFetchTransactions(current);
 
@@ -23,6 +25,8 @@ const {
   refresh: refreshPrevious,
   incomeTotal: prevIncomeTotal,
   expenseTotal: prevExpenseTotal,
+  investmentTotal: prevInvestmentTotal,
+  savingTotal: prevSavingTotal,
 } = useFetchTransactions(previous);
 
 const closeModal = () => (isOpen.value = false);
@@ -104,19 +108,19 @@ const handleSaved = async () => {
       :loading="pending"
     />
 
-    <!-- keep hardcoded for now like tutor did earlier -->
     <Trend
       color="blue"
       title="Investments"
-      :amount="4000"
-      :last-amount="3000"
+      :amount="investmentTotal"
+      :last-amount="prevInvestmentTotal"
       :loading="pending"
     />
+
     <Trend
       color="gray"
       title="Saving"
-      :amount="4000"
-      :last-amount="4100"
+      :amount="savingTotal"
+      :last-amount="prevSavingTotal"
       :loading="pending"
     />
   </section>

@@ -64,22 +64,30 @@ export const useFetchTransactions = (period: ComputedRef<TimeRange>) => {
     expense.value.reduce((sum, t) => sum + Number(t.amount ?? 0), 0),
   );
 
+  const investmentTotal = computed(() =>
+    transactions.value
+      .filter((t) => t.type === "Investment")
+      .reduce((sum, t) => sum + Number(t.amount ?? 0), 0),
+  );
+
+  const savingTotal = computed(() =>
+    transactions.value
+      .filter((t) => t.type === "Saving")
+      .reduce((sum, t) => sum + Number(t.amount ?? 0), 0),
+  );
+
   const byDate = computed(() => {
     const grouped: Record<string, TTransactionRow[]> = {};
-
     for (const t of transactions.value) {
       const date = new Date(t.created_at).toISOString().slice(0, 10);
       (grouped[date] ??= []).push(t);
     }
-
     return grouped;
   });
 
   watch(
     () => [period.value.from.getTime(), period.value.to.getTime()],
-    () => {
-      fetchTransactions();
-    },
+    () => fetchTransactions(),
     { immediate: true },
   );
 
@@ -90,11 +98,12 @@ export const useFetchTransactions = (period: ComputedRef<TimeRange>) => {
 
     incomeCount,
     expenseCount,
+
     incomeTotal,
     expenseTotal,
+    investmentTotal,
+    savingTotal,
 
-    grouped: {
-      byDate,
-    },
+    grouped: { byDate },
   };
 };
