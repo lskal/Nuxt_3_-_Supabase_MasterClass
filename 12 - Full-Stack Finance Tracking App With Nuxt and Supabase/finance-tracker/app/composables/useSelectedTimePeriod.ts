@@ -1,66 +1,66 @@
 import {
   startOfYear,
   endOfYear,
-  sub,
-  startOfDay,
-  endOfDay,
   startOfMonth,
   endOfMonth,
+  startOfDay,
+  endOfDay,
+  sub,
 } from "date-fns";
 import { computed } from "vue";
 
 export const useSelectedTimePeriod = (period: Ref<string>) => {
-  const dates = computed(() => {
+  const current = computed(() => {
     switch (period.value) {
       case "Yearly":
         return {
-          current: {
-            from: startOfYear(new Date()),
-            to: new Date(),
-          },
-          previous: {
-            from: startOfYear(sub(new Date(), { years: 1 })),
-            to: endOfYear(sub(new Date(), { years: 1 })),
-          },
+          from: startOfYear(new Date()),
+          to: new Date(),
         };
 
       case "Monthly":
         return {
-          current: {
-            from: startOfMonth(new Date()),
-            to: new Date(),
-          },
-          previous: {
-            from: startOfMonth(sub(new Date(), { months: 1 })),
-            to: endOfMonth(sub(new Date(), { months: 1 })),
-          },
+          from: startOfMonth(new Date()),
+          to: new Date(),
         };
 
       case "Daily":
         return {
-          current: {
-            from: startOfDay(new Date()),
-            to: new Date(),
-          },
-          previous: {
-            from: startOfDay(sub(new Date(), { days: 1 })),
-            to: endOfDay(sub(new Date(), { days: 1 })),
-          },
+          from: startOfDay(new Date()),
+          to: new Date(),
         };
 
       default:
         return {
-          current: {
-            from: startOfMonth(new Date()),
-            to: new Date(),
-          },
-          previous: {
-            from: startOfMonth(sub(new Date(), { months: 1 })),
-            to: endOfMonth(sub(new Date(), { months: 1 })),
-          },
+          from: startOfMonth(new Date()),
+          to: new Date(),
         };
     }
   });
 
-  return dates;
+  const previous = computed(() => {
+    switch (period.value) {
+      case "Yearly": {
+        const d = sub(new Date(), { years: 1 });
+        return { from: startOfYear(d), to: endOfYear(d) };
+      }
+
+      case "Monthly": {
+        const d = sub(new Date(), { months: 1 });
+        return { from: startOfMonth(d), to: endOfMonth(d) };
+      }
+
+      case "Daily": {
+        const d = sub(new Date(), { days: 1 });
+        return { from: startOfDay(d), to: endOfDay(d) };
+      }
+
+      default: {
+        const d = sub(new Date(), { months: 1 });
+        return { from: startOfMonth(d), to: endOfMonth(d) };
+      }
+    }
+  });
+
+  return { current, previous };
 };

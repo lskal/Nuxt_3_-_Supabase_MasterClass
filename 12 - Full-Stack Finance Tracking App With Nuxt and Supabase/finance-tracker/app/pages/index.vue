@@ -2,23 +2,37 @@
 import { transactionalViewOptions } from "~/constants";
 import DailyTransactionSummery from "../components/daily-transaction.summery.vue";
 import { useSelectedTimePeriod } from "../composables/useSelectedTimePeriod";
+import { useFetchTransactions } from "#imports";
 
 const viewSelect = ref(transactionalViewOptions[1]);
 const isOpen = ref(false);
 
-const dates = useSelectedTimePeriod(viewSelect);
+const { current, previous } = useSelectedTimePeriod(viewSelect);
 
 const {
   pending,
+  refresh,
+  incomeCount,
+  expenseCount,
   incomeTotal,
   expenseTotal,
-  previousIncomeTotal,
-  previousExpenseTotal,
-  groupedByDate,
-  refresh,
-} = useTransactions(dates);
+  grouped: { byDate },
+} = useFetchTransactions(current);
+
+const {
+  refresh: refreshPrevious,
+  incomeTotal: prevIncomeTotal,
+  expenseTotal: prevExpenseTotal,
+} = useFetchTransactions(previous);
 
 const closeModal = () => (isOpen.value = false);
+
+const handleSaved = async () => {
+  closeModal();
+  await Promise.all([refresh(), refreshPrevious()]);
+};
+
+await Promise.all([refresh(), refreshPrevious()]);
 </script>
 
 <template>
@@ -27,7 +41,8 @@ const closeModal = () => (isOpen.value = false);
     <div>
       <h1 class="text-4xl font-extrabold">Summary</h1>
       <div class="text-gray-500 dark:text-gray-400 mt-2">
-        Your transactions overview for this period
+        You have {{ incomeCount }} incomes and {{ expenseCount }} expenses this
+        period
       </div>
     </div>
 
@@ -66,15 +81,7 @@ const closeModal = () => (isOpen.value = false);
           </div>
         </template>
 
-        <TransactionModal
-          @close="closeModal"
-          @saved="
-            async () => {
-              closeModal();
-              await refresh();
-            }
-          "
-        />
+        <TransactionModal @close="closeModal" @saved="handleSaved" />
       </UCard>
     </template>
   </UModal>
@@ -87,7 +94,7 @@ const closeModal = () => (isOpen.value = false);
       color="yellow"
       title="Income"
       :amount="incomeTotal"
-      :last-amount="previousIncomeTotal"
+      :last-amount="prevIncomeTotal"
       :loading="pending"
     />
 
@@ -95,11 +102,11 @@ const closeModal = () => (isOpen.value = false);
       color="pink"
       title="Expense"
       :amount="expenseTotal"
-      :last-amount="previousExpenseTotal"
+      :last-amount="prevExpenseTotal"
       :loading="pending"
     />
 
-    <!-- keep these as-is for now (until you want to compute them too) -->
+    <!-- keep hardcoded for now like tutor did earlier -->
     <Trend
       color="blue"
       title="Investments"
@@ -118,11 +125,7 @@ const closeModal = () => (isOpen.value = false);
 
   <!-- Transactions -->
   <section v-if="!pending" class="mt-10">
-    <div
-      v-for="(transactionsOnDay, date) in groupedByDate"
-      :key="date"
-      class="mb-10"
-    >
+    <div v-for="(transactionsOnDay, date) in byDate" :key="date" class="mb-10">
       <DailyTransactionSummery :date="date" :transactions="transactionsOnDay" />
 
       <Transaction
