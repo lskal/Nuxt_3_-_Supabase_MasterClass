@@ -8,8 +8,15 @@ const isOpen = ref(false);
 
 const dates = useSelectedTimePeriod(viewSelect);
 
-const { pending, incomeTotal, expenseTotal, groupedByDate, refresh } =
-  useTransactions(dates);
+const {
+  pending,
+  incomeTotal,
+  expenseTotal,
+  previousIncomeTotal,
+  previousExpenseTotal,
+  groupedByDate,
+  refresh,
+} = useTransactions(dates);
 
 const closeModal = () => (isOpen.value = false);
 </script>
@@ -80,16 +87,19 @@ const closeModal = () => (isOpen.value = false);
       color="yellow"
       title="Income"
       :amount="incomeTotal"
-      :last-amount="4100"
+      :last-amount="previousIncomeTotal"
       :loading="pending"
     />
+
     <Trend
       color="pink"
       title="Expense"
       :amount="expenseTotal"
-      :last-amount="3800"
+      :last-amount="previousExpenseTotal"
       :loading="pending"
     />
+
+    <!-- keep these as-is for now (until you want to compute them too) -->
     <Trend
       color="blue"
       title="Investments"

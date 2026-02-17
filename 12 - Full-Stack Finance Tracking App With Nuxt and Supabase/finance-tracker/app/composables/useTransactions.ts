@@ -8,42 +8,53 @@ type TimePeriod = {
   previous: { from: Date; to: Date };
 };
 
+type Range = { from: Date; to: Date };
+
 export const useTransactions = (dates?: ComputedRef<TimePeriod>) => {
   const supabase = useSupabaseClient<Database>();
 
-  const rawTransactions = ref<TTransactionRow[]>([]);
+  const currentTransactions = ref<TTransactionRow[]>([]);
+  const previousTransactions = ref<TTransactionRow[]>([]);
   const pending = ref(false);
 
+  const fetchRange = async (range: Range) => {
+    const from = startOfDay(range.from).toISOString();
+    const to = endOfDay(range.to).toISOString();
+
+    const { data, error } = await supabase
+      .from("transactions")
+      .select("*")
+      .gte("created_at", from)
+      .lte("created_at", to)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []) as TTransactionRow[];
+  };
+
   const fetchTransactions = async () => {
+    if (!dates?.value) return;
+
     pending.value = true;
 
     try {
-      let query = supabase.from("transactions").select("*");
+      const [curr, prev] = await Promise.all([
+        fetchRange(dates.value.current),
+        fetchRange(dates.value.previous),
+      ]);
 
-      if (dates?.value?.current) {
-        const from = startOfDay(dates.value.current.from).toISOString();
-        const to = endOfDay(dates.value.current.to).toISOString();
-        query = query.gte("created_at", from).lte("created_at", to);
-      }
-
-      const { data, error } = await query.order("created_at", {
-        ascending: false,
-      });
-
-      if (error) throw error;
-
-      rawTransactions.value = data ?? [];
+      currentTransactions.value = curr;
+      previousTransactions.value = prev;
     } catch (err) {
       console.error("fetchTransactions failed:", err);
-      rawTransactions.value = [];
+      currentTransactions.value = [];
+      previousTransactions.value = [];
     } finally {
       pending.value = false;
     }
   };
 
   const refresh = () => fetchTransactions();
-
-  const currentTransactions = computed(() => rawTransactions.value);
 
   const incomeTotal = computed(() =>
     currentTransactions.value
@@ -53,6 +64,18 @@ export const useTransactions = (dates?: ComputedRef<TimePeriod>) => {
 
   const expenseTotal = computed(() =>
     currentTransactions.value
+      .filter((t) => t.type === "Expense")
+      .reduce((sum, t) => sum + (t.amount ?? 0), 0),
+  );
+
+  const previousIncomeTotal = computed(() =>
+    previousTransactions.value
+      .filter((t) => t.type === "Income")
+      .reduce((sum, t) => sum + (t.amount ?? 0), 0),
+  );
+
+  const previousExpenseTotal = computed(() =>
+    previousTransactions.value
       .filter((t) => t.type === "Expense")
       .reduce((sum, t) => sum + (t.amount ?? 0), 0),
   );
@@ -68,19 +91,25 @@ export const useTransactions = (dates?: ComputedRef<TimePeriod>) => {
     return grouped;
   });
 
-  // auto-fetch when dates change
   watch(
-    () => dates?.value?.current,
+    () => dates?.value,
     () => fetchTransactions(),
     { deep: true, immediate: true },
   );
 
   return {
-    transactions: currentTransactions,
     pending,
+
+    // current period
+    transactions: computed(() => currentTransactions.value),
     incomeTotal,
     expenseTotal,
     groupedByDate,
+
+    // previous period totals for Trend
+    previousIncomeTotal,
+    previousExpenseTotal,
+
     refresh,
     fetchTransactions,
   };
