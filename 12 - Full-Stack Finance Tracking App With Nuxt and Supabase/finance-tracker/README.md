@@ -1,3 +1,8 @@
+# 1 create .env file (in case of furute install)
+
+SUPABASE_URL=https://qzwcamokvxmfkqwxhbzh.supabase.co
+SUPABASE_KEY=sb_publishable_TqVnpVoWAKBBP24NDyfu4w_CnHfYQFS
+
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
