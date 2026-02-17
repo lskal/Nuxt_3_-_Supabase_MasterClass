@@ -31,8 +31,6 @@ const handleSaved = async () => {
   closeModal();
   await Promise.all([refresh(), refreshPrevious()]);
 };
-
-await Promise.all([refresh(), refreshPrevious()]);
 </script>
 
 <template>

@@ -39,10 +39,12 @@ export const useFetchTransactions = (period: ComputedRef<TimeRange>) => {
     }
   };
 
+  // keep refresh stable for callers
   const refresh = async () => {
     await fetchTransactions();
   };
 
+  // derived
   const income = computed(() =>
     transactions.value.filter((t) => isIncomeType(t.type)),
   );
@@ -55,11 +57,11 @@ export const useFetchTransactions = (period: ComputedRef<TimeRange>) => {
   const expenseCount = computed(() => expense.value.length);
 
   const incomeTotal = computed(() =>
-    income.value.reduce((sum, t) => sum + (t.amount ?? 0), 0),
+    income.value.reduce((sum, t) => sum + Number(t.amount ?? 0), 0),
   );
 
   const expenseTotal = computed(() =>
-    expense.value.reduce((sum, t) => sum + (t.amount ?? 0), 0),
+    expense.value.reduce((sum, t) => sum + Number(t.amount ?? 0), 0),
   );
 
   const byDate = computed(() => {
@@ -73,7 +75,13 @@ export const useFetchTransactions = (period: ComputedRef<TimeRange>) => {
     return grouped;
   });
 
-  watch(period, refresh);
+  watch(
+    () => [period.value.from.getTime(), period.value.to.getTime()],
+    () => {
+      fetchTransactions();
+    },
+    { immediate: true },
+  );
 
   return {
     pending,
