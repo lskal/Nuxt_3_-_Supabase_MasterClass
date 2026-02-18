@@ -10,7 +10,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
       label: user.value?.email ?? "",
       slot: "account",
       disabled: true,
-      icon: undefined, // keep the shape consistent for TS
+      icon: undefined, // keep item shape consistent
     },
   ],
   [
@@ -57,7 +57,6 @@ const items = computed<DropdownMenuItem[][]>(() => [
 
         <template #item="{ item }: { item: any }">
           <span class="truncate">{{ item.label }}</span>
-
           <UIcon
             v-if="item.icon"
             :name="item.icon"

@@ -8,18 +8,21 @@ export type TTransactionRow = {
   id: number;
   created_at: string;
   amount: number;
-  type: string;
+  type: TTransactionType;
   description: string | null;
-  category: string | null;
+  category: TCategory | null;
+  user_id: string;
 };
 
 export const transactionalViewOptions = ["Yearly", "Monthly", "Daily"] as const;
+
 export const categoriesOptions = [
   "Food",
   "Housing",
   "Car",
   "Entertainment",
 ] as const;
+
 export const typesOptions = [
   "Income",
   "Expense",
@@ -52,9 +55,5 @@ export const normalizeStringValue = (value: unknown): string => {
 
 export const isIncomeType = (value: unknown): boolean => {
   const typeValue = normalizeStringValue(value);
-  return (
-    typeValue === "income" ||
-    typeValue === "salary" ||
-    typeValue === "other" /* --> customize with diffente values in future */
-  );
+  return typeValue === "income";
 };

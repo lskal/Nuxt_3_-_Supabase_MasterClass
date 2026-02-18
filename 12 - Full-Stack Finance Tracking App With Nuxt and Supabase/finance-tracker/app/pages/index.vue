@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { transactionalViewOptions } from "~/constants";
+import { transactionalViewOptions, type TTransactionRow } from "~/constants";
 import DailyTransactionSummery from "../components/daily-transaction.summery.vue";
 import { useSelectedTimePeriod } from "../composables/useSelectedTimePeriod";
 import { useFetchTransactions } from "#imports";
 
 const viewSelect = ref(transactionalViewOptions[1]);
 const isOpen = ref(false);
+const editingTransaction = ref<TTransactionRow | null>(null);
 
-const { current, previous } = useSelectedTimePeriod(viewSelect);
+const { current, previous } = useSelectedTimePeriod(viewSelect as any);
 
 const {
   pending,
@@ -29,7 +30,20 @@ const {
   savingTotal: prevSavingTotal,
 } = useFetchTransactions(previous);
 
-const closeModal = () => (isOpen.value = false);
+const closeModal = () => {
+  isOpen.value = false;
+  editingTransaction.value = null;
+};
+
+const openAdd = () => {
+  editingTransaction.value = null;
+  isOpen.value = true;
+};
+
+const openEdit = (t: TTransactionRow) => {
+  editingTransaction.value = t;
+  isOpen.value = true;
+};
 
 const handleSaved = async () => {
   closeModal();
@@ -38,7 +52,6 @@ const handleSaved = async () => {
 </script>
 
 <template>
-  <!-- Header -->
   <section class="flex items-center justify-between mb-10">
     <div>
       <h1 class="text-4xl font-extrabold">Summary</h1>
@@ -58,12 +71,11 @@ const handleSaved = async () => {
         icon="i-heroicons-plus-circle"
         variant="solid"
         label="Add"
-        @click="isOpen = true"
+        @click="openAdd"
       />
     </div>
   </section>
 
-  <!-- Modal -->
   <UModal
     :open="isOpen"
     @update:open="(v) => (isOpen = v)"
@@ -73,7 +85,9 @@ const handleSaved = async () => {
       <UCard>
         <template #header>
           <div class="flex items-center justify-between">
-            <div class="font-semibold">Add Transaction</div>
+            <div class="font-semibold">
+              {{ editingTransaction ? "Edit Transaction" : "Add Transaction" }}
+            </div>
 
             <UButton
               icon="i-heroicons-x-mark"
@@ -83,12 +97,15 @@ const handleSaved = async () => {
           </div>
         </template>
 
-        <TransactionModal @close="closeModal" @saved="handleSaved" />
+        <TransactionModal
+          :transaction="editingTransaction"
+          @close="closeModal"
+          @saved="handleSaved"
+        />
       </UCard>
     </template>
   </UModal>
 
-  <!-- Trends -->
   <section
     class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 sm:gap-16 md-10"
   >
@@ -99,7 +116,6 @@ const handleSaved = async () => {
       :last-amount="prevIncomeTotal"
       :loading="pending"
     />
-
     <Trend
       color="pink"
       title="Expense"
@@ -107,7 +123,6 @@ const handleSaved = async () => {
       :last-amount="prevExpenseTotal"
       :loading="pending"
     />
-
     <Trend
       color="blue"
       title="Investments"
@@ -115,7 +130,6 @@ const handleSaved = async () => {
       :last-amount="prevInvestmentTotal"
       :loading="pending"
     />
-
     <Trend
       color="gray"
       title="Saving"
@@ -125,7 +139,6 @@ const handleSaved = async () => {
     />
   </section>
 
-  <!-- Transactions -->
   <section v-if="!pending" class="mt-10">
     <div v-for="(transactionsOnDay, date) in byDate" :key="date" class="mb-10">
       <DailyTransactionSummery :date="date" :transactions="transactionsOnDay" />
@@ -135,6 +148,7 @@ const handleSaved = async () => {
         :key="t.id"
         :transaction="t"
         @delete="refresh"
+        @edit="openEdit(t)"
       />
     </div>
   </section>

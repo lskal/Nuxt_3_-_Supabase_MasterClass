@@ -1,3 +1,4 @@
+// app/composables/useTransactions.ts
 import type { ComputedRef } from "vue";
 import type { Database } from "~/types/database.types";
 import { isIncomeType, type TTransactionRow } from "~/constants";
@@ -10,6 +11,7 @@ export type TimeRange = {
 
 export const useFetchTransactions = (period: ComputedRef<TimeRange>) => {
   const supabase = useSupabaseClient<Database>();
+  const user = useSupabaseUser();
 
   const transactions = ref<TTransactionRow[]>([]);
   const pending = ref(false);
@@ -21,16 +23,19 @@ export const useFetchTransactions = (period: ComputedRef<TimeRange>) => {
       const from = startOfDay(period.value.from).toISOString();
       const to = endOfDay(period.value.to).toISOString();
 
-      const { data, error } = await supabase
-        .from("transactions")
-        .select("*")
+      let query = supabase.from("transactions").select("*");
+
+      // Helps ensure you only see your rows even before RLS is perfect
+      if (user.value?.id) query = query.eq("user_id", user.value.id);
+
+      const { data, error } = await query
         .gte("created_at", from)
         .lte("created_at", to)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      transactions.value = (data ?? []) as TTransactionRow[];
+      transactions.value = (data ?? []) as unknown as TTransactionRow[];
     } catch (e) {
       console.error("fetchTransactions failed:", e);
       transactions.value = [];
@@ -39,18 +44,18 @@ export const useFetchTransactions = (period: ComputedRef<TimeRange>) => {
     }
   };
 
-  // keep refresh stable for callers
   const refresh = async () => {
     await fetchTransactions();
   };
 
-  // derived
   const income = computed(() =>
     transactions.value.filter((t) => isIncomeType(t.type)),
   );
 
   const expense = computed(() =>
-    transactions.value.filter((t) => !isIncomeType(t.type)),
+    transactions.value.filter(
+      (t) => !isIncomeType(t.type) && t.type === "Expense",
+    ),
   );
 
   const incomeCount = computed(() => income.value.length);
@@ -86,7 +91,11 @@ export const useFetchTransactions = (period: ComputedRef<TimeRange>) => {
   });
 
   watch(
-    () => [period.value.from.getTime(), period.value.to.getTime()],
+    () => [
+      period.value.from.getTime(),
+      period.value.to.getTime(),
+      user.value?.id,
+    ],
     () => fetchTransactions(),
     { immediate: true },
   );
